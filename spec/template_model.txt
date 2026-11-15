@@ -1,0 +1,19 @@
+# Template Input Teks SEM AMOS (Bisa langsung diubah lalu dieksekusi ke diagram)
+PLUGIN: Model Struktural Contoh Teks
+NAMESPACE: TextDemoSEM
+FONT: 20
+DEFAULT_IND: 4
+COV: all
+
+# Daftar hipotesis / jalur (boleh pakai -> atau kalimat "berpengaruh signifikan terhadap")
+H1: Kualitas Layanan -> Kepuasan Pelanggan
+H2: Citra Merek -> Kepuasan Pelanggan
+H3: Kepuasan Pelanggan -> Loyalitas
+H4: Citra Merek -> Loyalitas
+
+# Indikator per konstruk (opsional; tanda * menandai reference indicator = 1)
+# Format per item: nama_kolom_sav | Teks Tampilan  (atau cukup satu nama jika sama)
+Kualitas Layanan: *KL1 | Tangibles, KL2 | Reliability, KL3 | Responsiveness, KL4 | Empathy
+Citra Merek: *CM1 | Reputasi, CM2 | Kepercayaan, CM3 | Keunikan, CM4 | Nilai
+Kepuasan Pelanggan: *KP1 | Kepuasan Produk, KP2 | Kepuasan Layanan, KP3 | Kesesuaian Harapan, KP4 | Evaluasi Umum
+Loyalitas: *LY1 | Pembelian Ulang, LY2 | Rekomendasi, LY3 | Retensi, LY4 | Komitmen

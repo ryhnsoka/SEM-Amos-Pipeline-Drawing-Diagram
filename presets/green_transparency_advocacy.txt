@@ -1,0 +1,22 @@
+PLUGIN: AI Green Transparency & Brand Advocacy SEM
+NAMESPACE: GreenTransparencySEM
+# SAV: data/your_data.sav  (pass -SavFile <path> on CLI or set relative path here)
+FONT: 20
+COV: none
+LEFT: AI Enabled Green Transparency, Green Brand Authenticity, Perceived Greenwashing Scrutiny
+RIGHT: Green Value CoCreation, Green Brand Advocacy, Green Repurchase Intention
+
+H1: AI Enabled Green Transparency -> Green Value CoCreation
+H2: Green Value CoCreation -> Green Brand Authenticity
+H3: Green Value CoCreation -> Green Brand Advocacy
+H4: Green Value CoCreation -> Perceived Greenwashing Scrutiny
+H5: Green Brand Authenticity -> Green Repurchase Intention
+H6: Perceived Greenwashing Scrutiny -> Green Repurchase Intention
+H7: Green Repurchase Intention -> Green Brand Advocacy
+
+AI Enabled Green Transparency: UGC_5 | AI-based Environmental Information Disclosure, UGC_4 | Real-Time Sustainability Monitoring, UGC_3 | AI-Assisted Traceability, UGC_2 | Data Accuracy and Credibility, *UGC_1 | Stakeholder Accessibility and Transparency
+Green Value CoCreation: *CA_1 | Customer Participation in Green Activities, CA_2 | Green Knowledge Sharing, CA_3 | Collaborative Green Innovation, CA_4 | Joint Environmental Problem Solving, CA_5 | Shared Creation of Environmental Value
+Green Brand Authenticity: DI_5 | Environmental Sincerity, DI_4 | Consistency of Green Actions, DI_3 | Transparency of Environmental Information, DI_2 | Credibility of Green Claims, *DI_1 | Integrity of Sustainable Practices
+Perceived Greenwashing Scrutiny: TS_5 | Critical Evaluation of Green Claims, TS_4 | Verification of Environmental Information, TS_3 | Skepticism Toward Green Marketing, TS_2 | Attention to Environmental Transparency, *TS_1 | Detection of Greenwashing Signals
+Green Brand Advocacy: *EQ_1 | Positive Green Word-of-Mouth, EQ_2 | Recommendation of the Green Brand, EQ_3 | Active Promotion of Green Initiatives, EQ_4 | Defense of the Green Brand, EQ_5 | Public Endorsement of the Green Brand
+Green Repurchase Intention: *VI_5 | Intention to Purchase Green Products, VI_4 | Preference for Green Products, VI_3 | Willingness to Choose Green Alternatives, VI_2 | Likelihood of Future Green Purchases, VI_1 | Purchase Commitment Toward Green Products

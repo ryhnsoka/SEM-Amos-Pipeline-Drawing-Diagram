@@ -1,0 +1,24 @@
+# Generated build outputs & compiled binaries
+build/
+*.dll
+*.exe
+
+# Generated layout plans, previews, and converted specs
+plan/
+
+# Generated VB.NET plugin and headless estimator sources
+scripts/*SEM.vb
+scripts/HeadlessFit.vb
+
+# Datasets & AMOS temporary outputs (never commit raw survey data)
+*.sav
+*.AmosOutput
+*.amos
+*.amw
+
+# Python & OS caches / local scratch
+scratch/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db

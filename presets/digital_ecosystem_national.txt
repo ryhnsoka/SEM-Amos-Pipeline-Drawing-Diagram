@@ -1,0 +1,28 @@
+PLUGIN: Sustainable Digital Ecosystem & National Economic Development SEM
+NAMESPACE: DigitalEcosystemSEM
+# SAV: data/your_data.sav  (pass -SavFile <path> on CLI or set relative path here)
+FONT: 20
+LEFT: Digital Infrastructure Readiness, Regulating Framework Policy Support, Digital Talent Human Capital, Collaborative RD Strategic Alliance, Agile Technology Entrepreneurship Culture
+RIGHT: Sustainable Digital Ecosystem Transformation, National Economic Development
+COV: Regulating Framework Policy Support <-> Digital Talent Human Capital
+COV: Regulating Framework Policy Support <-> Collaborative RD Strategic Alliance
+COV: Regulating Framework Policy Support <-> Agile Technology Entrepreneurship Culture
+COV: Digital Talent Human Capital <-> Collaborative RD Strategic Alliance
+COV: Digital Talent Human Capital <-> Agile Technology Entrepreneurship Culture
+COV: Collaborative RD Strategic Alliance <-> Agile Technology Entrepreneurship Culture
+
+H1: Regulating Framework Policy Support -> Sustainable Digital Ecosystem Transformation
+H2: Digital Talent Human Capital -> Sustainable Digital Ecosystem Transformation
+H3: Collaborative RD Strategic Alliance -> Sustainable Digital Ecosystem Transformation
+H4: Agile Technology Entrepreneurship Culture -> Sustainable Digital Ecosystem Transformation
+H5: Digital Infrastructure Readiness -> Sustainable Digital Ecosystem Transformation
+H6: Digital Infrastructure Readiness -> National Economic Development
+H7: Sustainable Digital Ecosystem Transformation -> National Economic Development
+
+Regulating Framework Policy Support: Exploitmarket1 | Regulatory Clarity and Consistency, Exploitmarket2 | Pro-Innovation Fiscal and Financial Incentives, Exploitmarket3 | Institutional Agility and Enforcement Efficiency, *Exploitmarket4 | Policy Comprehensiveness and Market Alignment
+Digital Talent Human Capital: ExplorGP1 | Specific Technical Competence Readiness, ExploGP2 | Foundational Digital Literacy, ExploGP3 | Digital Innovation & Creative Capability, ExploGP4 | Continuous Upskilling & Reskilling Engagement, *ExploGP5 | Cognitive Flexibility & Tech Adaptability
+Collaborative RD Strategic Alliance: EntrepOrien1 | Triple Helix Partnership Intensity, EntrepOrien2 | Knowledge and Technology Transfer Effectiveness, EntrepOrien3 | Resource and Risk Sharing Commitment, EntrepOrien4 | Strategic Alignment and Inter-firm Trust, *EntrepOrien5 | Alliance Governance and Relational Flexibility
+Agile Technology Entrepreneurship Culture: ExplorMarket1 | Experimentation Orientation & Failure Tolerance, Explormarket2 | Market Responsiveness & Agility, *Explormarket3 | Digital Opportunity Recognition
+Digital Infrastructure Readiness: *ExploitGP1 | Connectivity Availability & Quality, ExploitGP2 | Hardware & Computing Capacity, ExploitGP3 | Cybersecurity Resilience, ExploitGP4 | System Integration & Interoperability
+Sustainable Digital Ecosystem Transformation: *GPdifferent1 | Cross-Industry Platform Cohesion, GPdifferent2 | Ecosystem Inclusivity for MSMEs, GPdifferent3 | Green Computing & Environmental Balance, GPdifferent4 | Business Model Resilience & Value Sustainability
+National Economic Development: Marketefektif1 | Digital GDP Contribution, Marketefektif2 | Cross-Sectoral Economic Spillover, Marketefektif3 | Global Market Competitiveness, Marketefektif4 | Digital Employment Generation, *Marketefektif5 | Financial Inclusion & Economic Equity

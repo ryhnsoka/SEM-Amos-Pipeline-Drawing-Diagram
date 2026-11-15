@@ -1,0 +1,17 @@
+PLUGIN: NMAX Community Brand Advocacy SEM
+NAMESPACE: NmaxBisdigSEM
+FONT: 20
+COV: all
+LEFT: Customer Experience, Community-Based Value Co-Creation
+RIGHT: Brand Resonance, Brand Advocacy
+
+H1: Customer Experience -> Brand Resonance
+H2: Community-Based Value Co-Creation -> Brand Resonance
+H3: Brand Resonance -> Brand Advocacy
+H4: Customer Experience -> Brand Advocacy
+H5: Community-Based Value Co-Creation -> Brand Advocacy
+
+Customer Experience: *CX1 | Pengalaman memberikan kesan positif, CX2 | Nyaman digunakan sehari-hari, CX3 | Interaksi NMAX dan layanan menyenangkan, CX4 | Interaksi sesama pengguna positif, CX5 | Bangga menggunakan NMAX
+Community-Based Value Co-Creation: *CBVC1 | Berpartisipasi kegiatan komunitas, CBVC2 | Mempelajari informasi kontribusi, CBVC3 | Memberikan masukan produk & layanan, CBVC4 | Membagikan pengalaman bermanfaat, CBVC5 | Membantu anggota yang membutuhkan
+Brand Resonance: *BR1 | Pilihan utama skuter premium, BR2 | Memilih NMAX untuk skuter sejenis, BR3 | Memiliki ikatan emosional, BR4 | Bagian dari komunitas pengguna, BR5 | Meluangkan waktu ikuti informasi
+Brand Advocacy: *BA1 | Merekomendasikan ke orang terdekat, BA2 | Menceritakan pengalaman positif, BA3 | Memberikan informasi positif, BA4 | Mendorong orang pertimbangkan NMAX, BA5 | Membela NMAX dari kritik tidak adil

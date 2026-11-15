@@ -1,0 +1,77 @@
+{
+  "standard_version": "1.1",
+  "units": "96dpi_logical_pixels",
+  "typography": {
+    "recommended_fonts": [15.0, 20.0],
+    "default_font_size": 20.0,
+    "param_font_ratio": 1.0,
+    "rect_wrap_lines": 2.2,
+    "oval_wrap_lines": 2.4,
+    "min_rect_height": 40.0,
+    "rect_height_per_font": 2.7,
+    "min_rect_width": 180.0,
+    "rect_width_per_font": 13.5,
+    "rect_width_per_char_font": 0.56,
+    "max_rect_width_per_font": 18.5,
+    "min_oval_width": 150.0,
+    "oval_width_per_font": 9.5,
+    "oval_width_per_char_font": 0.68,
+    "max_oval_width_per_font": 13.5,
+    "min_oval_height": 84.0,
+    "oval_height_per_font": 5.4,
+    "min_err_diameter": 30.0,
+    "err_diameter_per_font": 2.0,
+    "min_err_gap": 18.0,
+    "err_gap_per_font": 1.2,
+    "min_row_gap": 6.0,
+    "row_gap_per_font": 0.35
+  },
+  "layout_spacing": {
+    "min_top_margin": 36.0,
+    "top_margin_per_font": 2.0,
+    "min_bottom_margin": 44.0,
+    "bottom_margin_per_font": 3.0,
+    "min_outer_margin": 14.0,
+    "outer_margin_per_font": 0.9,
+    "min_band_gap": 44.0,
+    "band_gap_per_font": 2.8,
+    "min_oval_rect_gap": 86.0,
+    "oval_rect_gap_per_font": 4.6,
+    "min_center_corridor": 210.0,
+    "center_corridor_per_font": 12.5,
+    "min_disturbance_offset": 22.0,
+    "disturbance_extra_per_font": 0.5
+  },
+  "lines_and_anchors": {
+    "cov_sagitta_ratio": 0.24,
+    "cov_adjacent_pos": [0.58, 0.42],
+    "cov_spanned_pos": [0.52, 0.48],
+    "rect_anchors": {
+      "north": 0.125,
+      "east": 0.375,
+      "south": 0.625,
+      "west": 0.875
+    },
+    "ellipse_anchors": {
+      "north": 0.25,
+      "east": 0.5,
+      "south": 0.75,
+      "west": 1.0
+    },
+    "left_column_creation_order": "bottom_to_top",
+    "covariance_direction": "forward_corridor"
+  },
+  "statistical_defaults": {
+    "enforce_full_exogenous_covariances": true,
+    "enable_standardized_estimates": true,
+    "enable_smc": true,
+    "fixed_error_and_disturbance_loading": "1",
+    "default_ref_indicator_loading": "1"
+  },
+  "forbidden_amos_apis": [
+    "ToolsSmart",
+    "EditTouchUp",
+    "EditFitToPage",
+    "DiagramDrawUniqueVariable"
+  ]
+}

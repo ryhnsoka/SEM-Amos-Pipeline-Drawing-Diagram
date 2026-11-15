@@ -1,0 +1,70 @@
+{
+  "plugin_name": "Standard SEM Diagram Template",
+  "root_namespace": "StandardSEM",
+  "plugin_source": "scripts/GeneratedSEM.vb",
+  "sav_file": "",
+  "diagram": {
+    "font_size": 20.0,
+    "enforce_full_exogenous_covariances": true,
+    "left_column": ["X1", "X2"],
+    "right_column": ["M1", "Y1"],
+    "goodness_of_fit_caption": true
+  },
+  "constructs": [
+    {
+      "id": "X1",
+      "title": "Exogenous Factor 1",
+      "role": "exogenous",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "Indicator X1.1", "sav_var": "X1_1", "err": "e1"},
+        {"title": "Indicator X1.2", "sav_var": "X1_2", "err": "e2"},
+        {"title": "Indicator X1.3", "sav_var": "X1_3", "err": "e3"}
+      ]
+    },
+    {
+      "id": "X2",
+      "title": "Exogenous Factor 2",
+      "role": "exogenous",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "Indicator X2.1", "sav_var": "X2_1", "err": "e4"},
+        {"title": "Indicator X2.2", "sav_var": "X2_2", "err": "e5"},
+        {"title": "Indicator X2.3", "sav_var": "X2_3", "err": "e6"}
+      ]
+    },
+    {
+      "id": "M1",
+      "title": "Mediating Factor",
+      "role": "endogenous",
+      "disturbance": "d1",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "Indicator M1.1", "sav_var": "M1_1", "err": "e7"},
+        {"title": "Indicator M1.2", "sav_var": "M1_2", "err": "e8"},
+        {"title": "Indicator M1.3", "sav_var": "M1_3", "err": "e9"}
+      ]
+    },
+    {
+      "id": "Y1",
+      "title": "Outcome Factor",
+      "role": "endogenous",
+      "disturbance": "d2",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "Indicator Y1.1", "sav_var": "Y1_1", "err": "e10"},
+        {"title": "Indicator Y1.2", "sav_var": "Y1_2", "err": "e11"},
+        {"title": "Indicator Y1.3", "sav_var": "Y1_3", "err": "e12"}
+      ]
+    }
+  ],
+  "structural_paths": [
+    {"id": "H1", "from": "X1", "to": "M1"},
+    {"id": "H2", "from": "X2", "to": "M1"},
+    {"id": "H3", "from": "M1", "to": "Y1"},
+    {"id": "H4", "from": "X1", "to": "Y1"}
+  ],
+  "covariances": [
+    {"a": "X1", "b": "X2"}
+  ]
+}

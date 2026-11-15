@@ -1,0 +1,126 @@
+{
+  "plugin_name": "Sustainable Business SEM Draft",
+  "root_namespace": "SustainableSEM",
+  "plugin_source": "scripts/SustainableSEM.vb",
+  "sav_file": "data/data_spss_Sustainable_Business_Strategies.sav",
+  "diagram": {
+    "font_size": 20.0,
+    "param_font_size": 20.0,
+    "enforce_full_exogenous_covariances": true,
+    "left_column": ["DT", "Agility", "AICap", "GreenMkt"],
+    "right_column": ["AIInnov", "BusPerf", "EcoProc"],
+    "goodness_of_fit_caption": true
+  },
+  "constructs": [
+    {
+      "id": "DT",
+      "title": "Digital Transformation",
+      "role": "exogenous",
+      "ref_row": 4,
+      "indicators": [
+        {"title": "Digital Process Integration", "sav_var": "Opportunity", "err": "e5"},
+        {"title": "Data-Driven Decision Making", "sav_var": "Fairness", "err": "e4"},
+        {"title": "Digital Customer Interaction", "sav_var": "Nationalism", "err": "e3"},
+        {"title": "Digital Business Model", "sav_var": "Identity", "err": "e2"},
+        {"title": "Digital Organizational Transformation", "sav_var": "Belonging", "err": "e1"}
+      ]
+    },
+    {
+      "id": "AICap",
+      "title": "AI Capability",
+      "role": "exogenous",
+      "ref_row": 4,
+      "indicators": [
+        {"title": "AI Infrastructure Capability", "sav_var": "Information", "err": "e10"},
+        {"title": "AI Data Capability", "sav_var": "Sharing", "err": "e9"},
+        {"title": "AI Technical & Managerial Skills", "sav_var": "Commenting", "err": "e8"},
+        {"title": "AI Integration Capability", "sav_var": "Community", "err": "e7"},
+        {"title": "AI Organizational Adaptability", "sav_var": "Posting", "err": "e6"}
+      ]
+    },
+    {
+      "id": "AIInnov",
+      "title": "AI-Driven Innovation",
+      "role": "endogenous",
+      "disturbance": "d3",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "AI-Enabled Product Innovation", "sav_var": "Skill", "err": "e21"},
+        {"title": "AI-Enabled Process Innovation", "sav_var": "Cleanliness", "err": "e22"},
+        {"title": "AI-Enabled Service Innovation", "sav_var": "Responsibility", "err": "e23"},
+        {"title": "AI-Enabled Business Model Innovation", "sav_var": "Commerciality", "err": "e24"},
+        {"title": "AI-Enabled Innovation Capability", "sav_var": "LoyaltyImpact", "err": "e25"}
+      ]
+    },
+    {
+      "id": "Agility",
+      "title": "Organizational Agility",
+      "role": "endogenous",
+      "disturbance": "d4",
+      "ref_row": 4,
+      "indicators": [
+        {"title": "Market Sensing Agility", "sav_var": "Effort", "err": "e20"},
+        {"title": "Decision-Making Agility", "sav_var": "Status", "err": "e19"},
+        {"title": "Response Agility", "sav_var": "RoleModel", "err": "e18"},
+        {"title": "Resource Reconfiguration Agility", "sav_var": "Tradition", "err": "e17"},
+        {"title": "Process Adaptability", "sav_var": "Performance", "err": "e16"}
+      ]
+    },
+    {
+      "id": "GreenMkt",
+      "title": "Green Marketing Practices",
+      "role": "exogenous",
+      "ref_row": 4,
+      "indicators": [
+        {"title": "Green Product", "sav_var": "Economics", "err": "e15"},
+        {"title": "Green Pricing", "sav_var": "Transparency", "err": "e14"},
+        {"title": "Green Promotion", "sav_var": "Engagement", "err": "e13"},
+        {"title": "Green Distribution", "sav_var": "Attraction", "err": "e12"},
+        {"title": "Green Customer Engagement", "sav_var": "Competitiveness", "err": "e11"}
+      ]
+    },
+    {
+      "id": "EcoProc",
+      "title": "Eco-Innovated Process",
+      "role": "endogenous",
+      "disturbance": "d6",
+      "ref_row": 3,
+      "indicators": [
+        {"title": "Resource Efficiency", "sav_var": "Emotion", "err": "e30"},
+        {"title": "Waste Reduction", "sav_var": "SelfPerception", "err": "e29"},
+        {"title": "Clean Process Technology", "sav_var": "Recognition", "err": "e28"},
+        {"title": "Process Optimization", "sav_var": "NaturalisationImpact", "err": "e27"},
+        {"title": "Environmental Process Improvement", "sav_var": "Composition", "err": "e26"}
+      ]
+    },
+    {
+      "id": "BusPerf",
+      "title": "Business Performance",
+      "role": "endogenous",
+      "disturbance": "d7",
+      "ref_row": 0,
+      "indicators": [
+        {"title": "Sales Growth", "sav_var": "Consideration", "err": "e31"},
+        {"title": "Profitability", "sav_var": "Likelihood", "err": "e32"},
+        {"title": "Market Performance", "sav_var": "Desire", "err": "e33"},
+        {"title": "Customer Performance", "sav_var": "Probability", "err": "e34"},
+        {"title": "Networking Coverage", "sav_var": "Recommendation", "err": "e35"}
+      ]
+    }
+  ],
+  "structural_paths": [
+    {"id": "H1", "from": "DT", "to": "AIInnov"},
+    {"id": "H2", "from": "AICap", "to": "AIInnov"},
+    {"id": "H3", "from": "DT", "to": "Agility"},
+    {"id": "H4", "from": "AICap", "to": "Agility"},
+    {"id": "H5", "from": "GreenMkt", "to": "EcoProc"},
+    {"id": "H6", "from": "AIInnov", "to": "BusPerf"},
+    {"id": "H7", "from": "EcoProc", "to": "BusPerf"},
+    {"id": "H8", "from": "Agility", "to": "BusPerf"}
+  ],
+  "covariances": [
+    {"a": "DT", "b": "AICap", "pos1": 0.58, "pos2": 0.42},
+    {"a": "AICap", "b": "GreenMkt", "pos1": 0.58, "pos2": 0.42},
+    {"a": "DT", "b": "GreenMkt", "pos1": 0.52, "pos2": 0.48}
+  ]
+}
