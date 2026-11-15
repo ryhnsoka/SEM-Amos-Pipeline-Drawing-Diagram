@@ -65,7 +65,7 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
     sav_file = ""
     font_size = 20.0
     default_ind = 4
-    cov_mode = "auto"  # "auto" (all exogenous) | "none" | "explicit"
+    cov_mode = "unspecified"  # "all" | "none" | "explicit" | "unspecified"
     explicit_covs: list[tuple[str, str]] = []
     explicit_left: list[str] = []
     explicit_right: list[str] = []
@@ -106,7 +106,7 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
                 default_ind = max(2, int(val))
             elif key == "COV":
                 if val.lower() in ("all", "auto", "full", "lengkap"):
-                    cov_mode = "auto"
+                    cov_mode = "all"
                 elif val.lower() in ("none", "0", "off", "tanpa"):
                     cov_mode = "none"
                 else:
@@ -167,13 +167,17 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
         if ":" in line:
             cname_raw, items_raw = line.split(":", 1)
             ctitle = register_title(cname_raw)
+            if ctitle in raw_inds:
+                raise ValueError(f"Line {lineno}: duplicate indicator definition for construct '{ctitle}'.")
             parsed_items: list[tuple[str, str, bool]] = []
+            ref_count = 0
             for tok in items_raw.split(","):
                 tok = tok.strip()
                 if not tok:
                     continue
                 is_ref = tok.startswith("*")
                 if is_ref:
+                    ref_count += 1
                     tok = tok[1:].strip()
                 if "|" in tok:
                     sv_raw, disp_raw = [x.strip() for x in tok.split("|", 1)]
@@ -182,6 +186,8 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
                     parsed_items.append((tok, tok, is_ref))
             if len(parsed_items) < 2:
                 raise ValueError(f"Line {lineno}: construct '{ctitle}' needs at least 2 indicators.")
+            if ref_count > 1:
+                raise ValueError(f"Line {lineno}: construct '{ctitle}' has {ref_count} reference indicators ('*'); expected at most 1.")
             raw_inds[ctitle] = parsed_items
             continue
 
@@ -246,23 +252,39 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
         for hid, s, d in raw_paths
     ]
 
+    warnings: list[str] = []
     if cov_mode == "none":
         cov_json = []
         enforce_cov = False
+        cov_policy = "none"
     elif cov_mode == "explicit":
         cov_json = [{"a": id_by_title[a], "b": id_by_title[b]} for a, b in explicit_covs]
         enforce_cov = False
-    else:
+        cov_policy = "explicit"
+    elif cov_mode == "all":
         cov_json = [{"a": id_by_title[a], "b": id_by_title[b]} for a, b in itertools.combinations(exog_titles, 2)]
         enforce_cov = True
+        cov_policy = "all"
+    else:
+        cov_json = []
+        enforce_cov = False
+        cov_policy = "unspecified"
+        if len(exog_titles) >= 2:
+            warnings.append(
+                "Covariance policy not explicitly specified (omitted 'COV:'). "
+                "No exogenous covariance paths were added automatically. "
+                "Specify 'COV: all' (all exogenous pairs), 'COV: none' (no covariances), "
+                "or explicit pairs such as 'COV: Construct A <-> Construct B'."
+            )
 
-    return {
+    spec_out: dict[str, Any] = {
         "plugin_name": plugin_name,
         "root_namespace": root_ns,
         "plugin_source": plugin_source,
         "sav_file": sav_file,
         "diagram": {
             "font_size": font_size,
+            "covariance_policy": cov_policy,
             "enforce_full_exogenous_covariances": enforce_cov,
             "left_column": left_ids,
             "right_column": right_ids,
@@ -272,6 +294,9 @@ def parse_text_to_spec(text: str, out_hint: str = "TextGeneratedSEM") -> dict[st
         "structural_paths": struct_json,
         "covariances": cov_json,
     }
+    if warnings:
+        spec_out["warnings"] = warnings
+    return spec_out
 
 
 def main() -> int:
@@ -297,9 +322,16 @@ def main() -> int:
         sys.stderr.write(f"TEXT PARSE ERROR: {exc}\n")
         return 1
 
+    for w in spec.get("warnings", []):
+        sys.stderr.write(f"WARNING: {w}\n")
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(spec, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"TEXT_TO_SPEC_OK in={in_path.name} -> out={out_path.relative_to(ROOT)} constructs={len(spec['constructs'])} paths={len(spec['structural_paths'])} covs={len(spec['covariances'])}")
+    try:
+        out_label = str(out_path.relative_to(ROOT))
+    except ValueError:
+        out_label = str(out_path)
+    print(f"TEXT_TO_SPEC_OK in={in_path.name} -> out={out_label} constructs={len(spec['constructs'])} paths={len(spec['structural_paths'])} covs={len(spec['covariances'])}")
     return 0
 
 

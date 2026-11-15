@@ -34,6 +34,11 @@ DEFAULT_SPEC = ROOT / "spec" / "template_spec.json"
 PLAN_DIR = ROOT / "plan"
 SCRIPTS_DIR = ROOT / "scripts"
 
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from sav_utils import resolve_sav_path, validate_sav_dataset  # noqa: E402
+
 VALID_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
@@ -188,34 +193,34 @@ def validate_spec(spec: dict[str, Any], std: dict[str, Any], check_sav: bool = T
         else:
             cov_pairs.add(tuple(sorted((a, b))))
 
-    enforce_cov = diag.get(
-        "enforce_full_exogenous_covariances",
-        std["statistical_defaults"]["enforce_full_exogenous_covariances"],
-    )
+    cov_policy = diag.get("covariance_policy")
+    has_enforce_flag = "enforce_full_exogenous_covariances" in diag
+    if cov_policy == "all":
+        enforce_cov = True
+    elif cov_policy == "none":
+        enforce_cov = False
+        if cov_pairs:
+            errors.append("covariance_policy='none' conflicts with non-empty 'covariances' list.")
+    elif cov_policy in ("explicit", "unspecified"):
+        enforce_cov = False
+    elif has_enforce_flag:
+        enforce_cov = bool(diag["enforce_full_exogenous_covariances"])
+    else:
+        enforce_cov = False
+
     if enforce_cov:
         expected_pairs = {tuple(sorted(p)) for p in itertools.combinations(exog_ids, 2)}
         missing = expected_pairs - cov_pairs
         if missing:
             errors.append(
                 f"Standard violation: missing exogenous covariance pair(s): {sorted(missing)} "
-                "(set enforce_full_exogenous_covariances=false only if explicitly requested)."
+                "(set covariance_policy='none'/'explicit' or enforce_full_exogenous_covariances=false only if explicitly requested)."
             )
 
     if check_sav and spec.get("sav_file"):
-        sav_rel = Path(spec["sav_file"])
-        sav_path = sav_rel if sav_rel.is_absolute() else (ROOT / sav_rel)
-        if not sav_path.exists():
-            errors.append(f"Specified SAV file not found: {spec['sav_file']}")
-        else:
-            try:
-                import pyreadstat
-                df, _ = pyreadstat.read_sav(str(sav_path), metadataonly=True)
-                cols = set(df.columns)
-                missing_cols = sorted(seen_sav - cols)
-                if missing_cols:
-                    errors.append(f"SAV column mismatch in {sav_path.name}: missing {missing_cols}")
-            except ImportError:
-                pass
+        sav_path, _ = resolve_sav_path(None, spec.get("sav_file"), ROOT)
+        ds_report = validate_sav_dataset(sav_path, spec, source_label="spec")
+        errors.extend(ds_report["errors"])
 
     return errors
 
@@ -302,7 +307,8 @@ def compute_geometry(spec: dict[str, Any], std: dict[str, Any]) -> dict[str, Any
     oval_rect_gap = round_even(max(ls["min_oval_rect_gap"], font_size * ls["oval_rect_gap_per_font"], min_arc_clearance - oval_w / 2.0))
 
     outer_margin = round_even(max(ls["min_outer_margin"], font_size * ls["outer_margin_per_font"]))
-    center_corridor = round_even(max(ls["min_center_corridor"], font_size * ls["center_corridor_per_font"], oval_w * 1.15))
+    east_arc_corridor = (sag_ratio * max_cov_span + max(30.0, font_size * 1.5)) if max_cov_span > 0 else 0.0
+    center_corridor = round_even(max(ls["min_center_corridor"], font_size * ls["center_corridor_per_font"], oval_w * 1.15, east_arc_corridor))
 
     left_rect_x = outer_margin + err_d + err_gap + rect_w / 2.0
     left_oval_x = left_rect_x + rect_w / 2.0 + oval_rect_gap + oval_w / 2.0
@@ -661,13 +667,13 @@ body.showalt .cov-alt{{opacity:.85}}
 
 
 # --------------------------------------------------------------------------- VB.NET emitters
-def emit_plugin_vb(spec: dict[str, Any], g: dict[str, Any], std: dict[str, Any]) -> str:
+def emit_plugin_vb(spec: dict[str, Any], g: dict[str, Any], std: dict[str, Any], staged_sav_name: str = "") -> str:
     la = std["lines_and_anchors"]
     sd = std["statistical_defaults"]
     constructs = spec["constructs"]
     idx_by_id = {c["id"]: i for i, c in enumerate(constructs)}
     max_inds = max(len(c["indicators"]) for c in constructs)
-    sav_leaf = Path(spec["sav_file"]).name if spec.get("sav_file") else ""
+    sav_leaf = staged_sav_name or (Path(spec["sav_file"]).name if spec.get("sav_file") else "")
     ns_tag = spec.get("root_namespace", "StandardSEM")
 
     rect_wrap_chars = int(std["typography"].get("rect_wrap_chars", 24))
@@ -743,6 +749,8 @@ def emit_plugin_vb(spec: dict[str, Any], g: dict[str, Any], std: dict[str, Any])
 Option Explicit On
 
 Imports System
+Imports System.Collections.Generic
+Imports System.Diagnostics
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.VisualBasic
@@ -841,32 +849,56 @@ Public Class CPlugin
         Return 0
     End Function
 
-    Private Function FindSavFile() As String
+    Private Function FindSavFile(ByVal searchedPaths As List(Of String)) As String
         If String.IsNullOrEmpty(SavFileName) Then Return ""
         Try
             Dim asmLoc As String = Assembly.GetExecutingAssembly().Location
             If Not String.IsNullOrEmpty(asmLoc) Then
                 Dim dllDir As String = Path.GetDirectoryName(asmLoc)
                 Dim besideDll As String = Path.Combine(dllDir, SavFileName)
+                searchedPaths.Add(besideDll)
                 If File.Exists(besideDll) Then Return besideDll
                 Dim rootData As String = Path.Combine(Path.GetDirectoryName(dllDir), "data", SavFileName)
+                searchedPaths.Add(rootData)
                 If File.Exists(rootData) Then Return rootData
             End If
-        Catch
+        Catch ex As Exception
+            Trace.WriteLine("AMOS SEM FindSavFile assembly lookup error: " & ex.Message)
         End Try
         Dim localSav As String = Path.Combine( _
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _
             "AmosDevelopment", "Amos", "23", SavFileName)
+        searchedPaths.Add(localSav)
         If File.Exists(localSav) Then Return localSav
         Return ""
     End Function
 
     Private Sub BindSavDataFile()
-        Dim savPath As String = FindSavFile()
-        If String.IsNullOrEmpty(savPath) Then Return
+        If String.IsNullOrEmpty(SavFileName) Then Return
+        Dim searchedPaths As New List(Of String)()
+        Dim savPath As String = FindSavFile(searchedPaths)
+        If String.IsNullOrEmpty(savPath) Then
+            Dim missingMsg As String = _
+                "AMOS SEM dataset binding failed: staged SPSS dataset could not be located." & vbCrLf & _
+                "Expected dataset: " & SavFileName & vbCrLf & _
+                "File exists: False" & vbCrLf & _
+                "Searched paths:" & vbCrLf & String.Join(vbCrLf, searchedPaths.ToArray())
+            Trace.WriteLine(missingMsg)
+            MsgBox(missingMsg, MsgBoxStyle.Exclamation, "AMOS SEM Dataset Binding Error")
+            Return
+        End If
         Try
             pd.SetDataFile(1, cDatabaseFormat.mmSPSS, savPath, "", "", 0)
-        Catch
+        Catch ex As Exception
+            Dim bindMsg As String = _
+                "AMOS rejected dataset binding." & vbCrLf & _
+                "Expected dataset: " & SavFileName & vbCrLf & _
+                "Resolved path: " & savPath & vbCrLf & _
+                "File exists: " & File.Exists(savPath).ToString() & vbCrLf & _
+                "Searched paths:" & vbCrLf & String.Join(vbCrLf, searchedPaths.ToArray()) & vbCrLf & _
+                "AMOS Error: " & ex.Message
+            Trace.WriteLine(bindMsg)
+            MsgBox(bindMsg, MsgBoxStyle.Exclamation, "AMOS SEM Dataset Binding Error")
         End Try
     End Sub
 
@@ -1102,11 +1134,12 @@ Module MainModule
 
     Private Function RunFit(ByVal savPath As String) As Integer
         Dim Sem As New AmosEngine()
-        Sem.Standardized()
-        Sem.Smc()
-        Sem.TextOutput()
-        Sem.GenerateDefaultCovariances(False)
-        Sem.BeginGroupEx(cDatabaseFormat.mmSPSS, savPath, "")
+        Try
+            Sem.Standardized()
+            Sem.Smc()
+            Sem.TextOutput()
+            Sem.GenerateDefaultCovariances(False)
+            Sem.BeginGroupEx(cDatabaseFormat.mmSPSS, savPath, "")
 
 {chr(10).join(meas_lines)}
 
@@ -1114,12 +1147,22 @@ Module MainModule
 
 {chr(10).join(cov_lines)}
 
-        Dim status As Integer = Sem.FitModel()
-        Console.WriteLine("FitStatus=" & CStr(status) & "; Admissible=" & CStr(Sem.Admissible()) & "; CMIN=" & CStr(Sem.Cmin) & "; DF=" & CStr(Sem.Df) & "; RMSEA=" & CStr(Sem.Rmsea))
-        Console.WriteLine("TEXT_OUT=" & Sem.TextOutputFileName())
-        Sem.Dispose()
-        If status <> 0 Then Return 2
-        Return 0
+            Dim status As Integer = Sem.FitModel()
+            Dim isAdmissible As Boolean = Sem.Admissible()
+            Console.WriteLine("FitStatus=" & CStr(status) & "; Admissible=" & CStr(isAdmissible) & "; CMIN=" & CStr(Sem.Cmin) & "; DF=" & CStr(Sem.Df) & "; RMSEA=" & CStr(Sem.Rmsea))
+            Console.WriteLine("TEXT_OUT=" & Sem.TextOutputFileName())
+            Sem.Dispose()
+            If status <> 0 Then Return 2
+            If Not isAdmissible Then Return 4
+            Return 0
+        Catch ex As Exception
+            Console.Error.WriteLine("RUNTIME_ERROR=" & ex.Message)
+            Try
+                Sem.Dispose()
+            Catch
+            End Try
+            Return 3
+        End Try
     End Function
 End Module
 """
@@ -1130,7 +1173,10 @@ def main() -> int:
     parser.add_argument("--spec", default=str(DEFAULT_SPEC), help="Path to project spec JSON")
     parser.add_argument("--standard", default=str(DEFAULT_STANDARD), help="Path to diagram_standard.json")
     parser.add_argument("--font", type=float, default=None, help="Override font size")
+    parser.add_argument("--sav", default="", help="Runtime SPSS .sav path (overrides spec.sav_file)")
+    parser.add_argument("--dataset-report", default="", help="Output path for dataset integration JSON report")
     parser.add_argument("--skip-sav-check", action="store_true", help="Skip .sav column existence check")
+    parser.add_argument("--validate-only", action="store_true", help="Validate spec, dataset, and geometry without emitting VB.NET")
     args = parser.parse_args()
 
     std_path = Path(args.standard)
@@ -1153,19 +1199,57 @@ def main() -> int:
         spec["diagram"]["font_size"] = float(args.font)
         spec["diagram"]["param_font_size"] = float(args.font) * float(std["typography"]["param_font_ratio"])
 
-    spec_errors = validate_spec(spec, std, check_sav=not args.skip_sav_check)
+    # Surface covariance policy warnings explicitly without silent assumption
+    diag = spec.get("diagram", {})
+    exog_count = sum(1 for c in spec.get("constructs", []) if c.get("role") == "exogenous")
+    for w in spec.get("warnings", []):
+        sys.stderr.write(f"WARNING: {w}\n")
+    if (
+        exog_count >= 2
+        and not spec.get("covariances")
+        and "covariance_policy" not in diag
+        and "enforce_full_exogenous_covariances" not in diag
+    ):
+        sys.stderr.write(
+            "WARNING: Covariance policy not explicitly specified in JSON spec "
+            "(missing 'covariance_policy' / 'enforce_full_exogenous_covariances'). "
+            "No exogenous covariance paths were added automatically.\n"
+        )
+
+    # Validate structural spec (dataset checked below via unified sav_utils)
+    spec_errors = validate_spec(spec, std, check_sav=False)
     if spec_errors:
         for e in spec_errors:
             sys.stderr.write(f"STANDARD ERROR: {e}\n")
+        return 1
+
+    # Unified dataset resolution & preflight validation
+    resolved_sav, sav_source = resolve_sav_path(args.sav, spec.get("sav_file"), ROOT, spec_dir=spec_path.parent)
+    if args.skip_sav_check:
+        dataset_report = validate_sav_dataset(None, spec, source_label="skipped")
+    else:
+        dataset_report = validate_sav_dataset(resolved_sav, spec, source_label=sav_source)
+
+    PLAN_DIR.mkdir(parents=True, exist_ok=True)
+    SCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    ds_report_path = Path(args.dataset_report) if args.dataset_report else (PLAN_DIR / "dataset_report.json")
+    if not ds_report_path.is_absolute():
+        ds_report_path = ROOT / ds_report_path
+    ds_report_path.parent.mkdir(parents=True, exist_ok=True)
+    ds_report_path.write_text(json.dumps(dataset_report, indent=2), encoding="utf-8")
+
+    for w in dataset_report.get("warnings", []):
+        sys.stderr.write(f"DATASET WARNING: {w}\n")
+    if dataset_report.get("errors"):
+        for e in dataset_report["errors"]:
+            sys.stderr.write(f"DATASET ERROR: {e}\n")
         return 1
 
     g = compute_geometry(spec, std)
     plan = build_plan(spec, g, std)
     has_cap = spec["diagram"].get("goodness_of_fit_caption", True)
     problems = run_checks(plan, g, has_cap)
-
-    PLAN_DIR.mkdir(parents=True, exist_ok=True)
-    SCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
     (PLAN_DIR / "layout.json").write_text(
         json.dumps(
@@ -1188,15 +1272,24 @@ def main() -> int:
             sys.stderr.write(f"COLLISION PROBLEM: {p}\n")
         return 1
 
+    if args.validate_only:
+        print(
+            f"VALIDATE_OK spec={spec_path.name} font={g['font_size']:.0f} page={g['page_w_in']}x{g['page_h_in']}in "
+            f"sav={dataset_report.get('staged_filename') or 'none'}"
+        )
+        return 0
+
+    staged_sav_name = dataset_report.get("staged_filename", "")
     vb_rel = spec.get("plugin_source", "scripts/GeneratedSEM.vb")
     vb_out = ROOT / vb_rel if not Path(vb_rel).is_absolute() else Path(vb_rel)
     vb_out.parent.mkdir(parents=True, exist_ok=True)
-    vb_out.write_text(emit_plugin_vb(spec, g, std), encoding="utf-8")
+    vb_out.write_text(emit_plugin_vb(spec, g, std, staged_sav_name=staged_sav_name), encoding="utf-8")
     (SCRIPTS_DIR / "HeadlessFit.vb").write_text(emit_headless_fit_vb(spec), encoding="utf-8")
 
     print(
         f"STANDARD_OK spec={spec_path.name} font={g['font_size']:.0f} page={g['page_w_in']}x{g['page_h_in']}in "
-        f"shapes={len(plan.shapes)} arrows={len(plan.arrows)} curves={len(plan.curves)} vb={vb_out.name}"
+        f"shapes={len(plan.shapes)} arrows={len(plan.arrows)} curves={len(plan.curves)} vb={vb_out.name} "
+        f"sav={staged_sav_name or 'none'}"
     )
     return 0
 

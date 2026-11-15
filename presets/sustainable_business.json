@@ -6,6 +6,7 @@
   "diagram": {
     "font_size": 20.0,
     "param_font_size": 20.0,
+    "covariance_policy": "all",
     "enforce_full_exogenous_covariances": true,
     "left_column": ["DT", "Agility", "AICap", "GreenMkt"],
     "right_column": ["AIInnov", "BusPerf", "EcoProc"],

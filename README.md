@@ -10,8 +10,9 @@ Universal, project-agnostic automation pipeline for **IBM SPSS Amos 23** (`AmosG
 - **Adaptive 96-DPI Layout Engine:** Automatically scales canvas dimensions, shapes, row gaps, center corridors, and Goodness-of-Fit placement from `font_size` and label length using [spec/diagram_standard.json](spec/diagram_standard.json).
 - **Zero-Collision Geometric Gate:** Verifies zero shape overlaps, zero arrow-through-ellipse/box crossings, and clean east-side covariance arcs before compilation.
 - **32-bit (x86) AMOS 23 Compilation & Reflection:** Compiles VB.NET `IPlugin` DLLs with `vbc.exe /platform:x86` and verifies `AmosGraphics.IPlugin` contracts via 32-bit PowerShell.
-- **Headless Statistical Verification:** Compiles and executes `HeadlessFit.exe` (`AmosEngineLib`) when an SPSS `.sav` dataset is supplied (`-SavFile` or `SAV:`), reporting `FitStatus`, `Admissible`, `CMIN`, `DF`, and `RMSEA`.
-- **Safe Plugin Deployment:** `-Deploy` copies the compiled DLL to AMOS 23 `Plugins/` and automatically cleans up old custom plugins while preserving all 6 built-in AMOS 23 plugins (opt out with `-KeepOldPlugins`).
+- **Headless Statistical Verification:** Compiles and executes `HeadlessFit.exe` (`AmosEngineLib`) when an SPSS `.sav` dataset is supplied (`-SavFile` or `SAV:`), reporting `FitStatus`, `Admissible`, `CMIN`, `DF`, and `RMSEA` in `plan/execution_report.json` while keeping diagram/DLL build status independent from estimation convergence.
+- **Unified Dataset Preflight & Collision-Safe Staging:** Resolves `.sav` once (`-SavFile` > `spec.sav_file`), validates observations, variable names, numeric compatibility, missing values, and zero-variation columns via `pyreadstat`, writes `plan/dataset_report.json`, and stages a SHA-256-suffixed copy (`<stem>_<sha8>.sav`) so identical filenames never collide.
+- **Non-Destructive Plugin Deployment:** `-Deploy` backs up any existing target DLL to `build/backups/`, verifies the copied DLL via SHA-256, and preserves all unrelated and built-in AMOS 23 plugins by default (supports `-WhatIf` preview and explicit `-PruneOldPlugins`).
 
 ---
 
@@ -20,7 +21,7 @@ Universal, project-agnostic automation pipeline for **IBM SPSS Amos 23** (`AmosG
 - **OS:** Windows (PowerShell 5.1+)
 - **IBM SPSS Amos 23** installed under `C:\Program Files (x86)\IBM\SPSS\Amos\23` (or `Program Files`)
 - **.NET Framework 4.0 x86** (`%WINDIR%\Microsoft.NET\Framework\v4.0.30319\vbc.exe`)
-- **Python 3.10+** (optional `pyreadstat` for `.sav` column pre-validation)
+- **Python 3.10+** with `pyreadstat` (`pip install pyreadstat`) when validating/binding `.sav` datasets (fails closed if `.sav` is supplied without `pyreadstat`)
 
 ---
 
@@ -48,12 +49,19 @@ amos-sem -SpecFile presets\green_transparency_advocacy.txt -SavFile "path\to\dat
 amos-sem -SpecFile spec\template_model.txt -FontSize 15
 ```
 
-### 5. Deploy to IBM SPSS Amos 23 (Administrator PowerShell)
-Close AMOS 23 first, then run in an elevated PowerShell:
+### 5. Validate Only or Skip Headless Fit
 ```powershell
+amos-sem -SpecFile presets\green_transparency_advocacy.txt -SavFile "path\to\data.sav" -ValidateOnly
+amos-sem -SpecFile spec\template_model.txt -SkipFit
+```
+
+### 6. Deploy to IBM SPSS Amos 23 (Administrator PowerShell)
+Close AMOS 23 first, then preview or run in an elevated PowerShell:
+```powershell
+amos-sem -SpecFile spec\template_model.txt -Deploy -WhatIf
 amos-sem -SpecFile spec\template_model.txt -Deploy
 ```
-Add `-KeepOldPlugins` if you want to keep previously deployed custom plugins alongside the new one.
+Deployment preserves all unrelated existing plugins by default. Pass `-PruneOldPlugins` only if you intentionally want to remove other custom plugins (built-in AMOS 23 plugins are never deleted).
 
 ---
 

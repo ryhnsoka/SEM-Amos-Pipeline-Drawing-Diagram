@@ -39,7 +39,7 @@ Jika pengguna memberikan daftar hipotesis atau rencana model dalam teks (format 
 2. **Jangan pernah mengasumsikan atau menimpa diam-diam jika nama kolom `.sav` berbeda dari model:**
    - Laporkan ketidaksesuaiannya kepada pengguna terlebih dahulu.
    - Apabila pengguna mengonfirmasi file `.sav` tersebut memang file yang benar (mis. dataset template dengan jumlah kelompok & indikator yang cocok), petakan secara konsisten **1-lawan-1 mengikuti urutan `e1`–`eN` pada diagram** (`NameOrCaption` = nama kolom `.sav`, `LongLabel` = teks label diagram) dan jelaskan pemetaan tersebut secara transparan.
-3. **Sertakan data saat menjalankan pipeline** lewat `-SavFile "<path\ke\data.sav>"` (lebih disarankan daripada menaruh path lokal absolut di preset Git). Pipeline akan otomatis menyalin `.sav` ke `%LOCALAPPDATA%\AmosDevelopment\Amos\23\`.
+3. **Sertakan data saat menjalankan pipeline** lewat `-SavFile "<path\ke\data.sav>"` (lebih disarankan daripada menaruh path lokal absolut di preset Git). Pipeline akan memvalidasi `.sav` secara *fail-closed* via `pyreadstat`, menulis laporan ke `plan\dataset_report.json`, dan menyalin `.sav` dengan sufiks hash SHA-256 (`<nama>_<sha8>.sav`) ke `%LOCALAPPDATA%\AmosDevelopment\Amos\23\` tanpa menimpa atau mengubah file asli.
 
 ---
 
@@ -68,7 +68,7 @@ Aturan teknis berikut sudah terverifikasi langsung pada IBM SPSS Amos 23 dan tel
   ```powershell
   amos-sem -SpecFile "presets\<nama>.txt" -Deploy
   ```
-  Langkah ini otomatis menghapus plugin kustom lama di `Amos\23\Plugins\` sambil tetap melindungi 6 plugin bawaan AMOS 23 (tambahkan `-KeepOldPlugins` jika ingin mempertahankan plugin kustom lain).
+  Langkah ini bersifat **non-destruktif** secara default: hanya mengganti DLL target (setelah membuat cadangan di `build\backups\`), memverifikasi SHA-256, dan mempertahankan seluruh plugin lain serta 6 plugin bawaan AMOS 23. Gunakan `-WhatIf` untuk pratinjau, atau tambahkan `-PruneOldPlugins` jika memang ingin membersihkan plugin kustom lama.
 - **Kebersihan Kode & Git:**
   - Jangan mengedit hasil generate (`scripts/*SEM.vb`, `scripts/HeadlessFit.vb`, `plan/*`, `build/*`) secara langsung; ubah sumber `.txt`/`.json` atau generatornya.
   - Jangan menulis path absolut mesin lokal (`C:\...`, `D:\...`) di dalam skrip atau preset yang di-commit ke Git.

@@ -8,15 +8,17 @@ Semua konstanta proporsi garis, ukuran objek, dan konvensi titik tempel disimpan
 
 ## 1. Standar Pemodelan Statistik
 
-1. **Kovarians Eksogen Lengkap (Default Wajib):**
-   - Seluruh konstruk bertipe `exogenous` dihubungkan berpasangan dengan panah dua arah (`<->`), yaitu sebanyak $\binom{k}{2}$ kovarians agar korelasi antarprediktor tidak dipaksa nol.
-   - Hanya boleh dinonaktifkan (`"enforce_full_exogenous_covariances": false`) apabila spesifikasi riset/pengguna secara eksplisit melarang garis kovarians.
+1. **Kovarians Eksogen Eksplisit:**
+   - Kebijakan kovarians harus dinyatakan secara eksplisit (`"covariance_policy": "all" | "none" | "explicit"`, atau pada DSL teks via `COV: all`, `COV: none`, atau pasangan `COV: A <-> B`).
+   - Pada `COV: all` (`"enforce_full_exogenous_covariances": true`), seluruh konstruk `exogenous` dihubungkan berpasangan sebanyak $\binom{k}{2}$ kovarians.
+   - Jika kebijakan kovarians tidak dinyatakan, pipeline tidak menambahkan jalur kovarians secara diam-diam dan mengeluarkan peringatan eksplisit.
 2. **Pemisahan Identitas Data vs Label Tampilan:**
    - `NameOrCaption` pada kotak indikator memakai nama kolom teknis `.sav` (`sav_var`, pengenal valid AMOS tanpa spasi), sedangkan `LongLabel` menampilkan teks indikator riset pada diagram.
    - Setiap konstruk memiliki tepat satu *reference indicator* (`ref_row`, koefisien panah `"1"`).
    - Setiap error indikator (`err`) dan disturbance endogen (`disturbance`) bertipe panah bernilai `"1"`.
-3. **Pre-Flight Statistik via `AmosEngineLib`:**
-   - Setiap model yang memiliki file `.sav` diverifikasi terlebih dahulu melalui `HeadlessFit.exe` sebelum digunakan di GUI Amos guna memastikan `FitStatus = 0`, `Admissible = True`, serta kesesuaian `DF`, `CMIN`, dan `RMSEA`.
+3. **Pre-Flight Statistik via `AmosEngineLib` & Pemisahan Status:**
+   - Setiap model yang memiliki file `.sav` diverifikasi terlebih dahulu melalui `HeadlessFit.exe` untuk mencatat `FitStatus`, `Admissible`, `CMIN`, `DF`, dan `RMSEA` di `plan/execution_report.json`.
+   - Status keberhasilan build diagram & kompilasi DLL dipisahkan dari status estimasi statistik (`succeeded`, `inadmissible`, `estimation_failed`, `runtime_error`, `skipped`).
 
 ---
 

@@ -27,7 +27,14 @@ Toolkit netral berbasis standar untuk mengubah deskripsi model SEM (dari **teks*
   ```powershell
   powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile spec\template_model.txt -FontSize 15
   ```
-- **Deploy ke Amos 23 (PowerShell Administrator):**
+- **Validasi saja tanpa kompilasi (`-ValidateOnly`) atau lewati `HeadlessFit` (`-SkipFit`):**
   ```powershell
+  powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile presets\green_transparency_advocacy.txt -SavFile "data\riset.sav" -ValidateOnly
+  powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile spec\template_model.txt -SkipFit
+  ```
+- **Deploy ke Amos 23 (PowerShell Administrator, non-destruktif):**
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile spec\proyek_kamu.txt -Deploy -WhatIf
   powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile spec\proyek_kamu.txt -Deploy
   ```
+  *(Plugin lain tetap dipertahankan secara default; tambahkan `-PruneOldPlugins` hanya jika memang ingin membersihkan plugin kustom lama.)*
