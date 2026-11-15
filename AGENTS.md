@@ -73,3 +73,19 @@ Aturan teknis berikut sudah terverifikasi langsung pada IBM SPSS Amos 23 dan tel
   - Jangan mengedit hasil generate (`scripts/*SEM.vb`, `scripts/HeadlessFit.vb`, `plan/*`, `build/*`) secara langsung; ubah sumber `.txt`/`.json` atau generatornya.
   - Jangan menulis path absolut mesin lokal (`C:\...`, `D:\...`) di dalam skrip atau preset yang di-commit ke Git.
   - Jangan pernah commit file `.sav`, `build/`, `plan/`, `scratch/`, atau menjalankan `git push` tanpa perintah eksplisit dari pengguna.
+
+---
+
+## 5. Daftar Perintah Langsung Pipeline (Untuk Agent)
+
+Begitu agent membaca repositori ini, setiap fungsi pipeline dapat dipanggil langsung dari root proyek:
+
+| Fungsi | Perintah Langsung |
+| :--- | :--- |
+| Audit / inspeksi `.sav` | `python scripts\sav_utils.py --sav "<path.sav>" [--spec <spec.json>]` |
+| Konversi `.txt` DSL → JSON | `python scripts\text_to_spec.py --in <model.txt> --out plan\<nama>.spec.json` |
+| Validasi saja (spec + `.sav` + geometri) | `powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile <spec> [-SavFile "<path.sav>"] -ValidateOnly` |
+| Build DLL x86 tanpa `HeadlessFit` | `powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile <spec> [-SavFile "<path.sav>"] -SkipFit` |
+| Pipeline penuh (+ `HeadlessFit`) | `powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile <spec> [-SavFile "<path.sav>"]` |
+| Pratinjau / Deploy ke AMOS 23 | `powershell -ExecutionPolicy Bypass -File scripts\amos_pipeline.ps1 -SpecFile <spec> [-SavFile "<path.sav>"] -Deploy [-WhatIf] [-PruneOldPlugins]` |
+| Jalankan test regresi | `python -m unittest discover -s tests -v` |

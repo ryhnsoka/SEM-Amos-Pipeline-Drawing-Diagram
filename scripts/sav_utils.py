@@ -226,3 +226,52 @@ def validate_sav_dataset(
         report["binding_status"] = "configured"
 
     return report
+
+
+def main() -> int:
+    import argparse
+    import json
+    import sys
+
+    parser = argparse.ArgumentParser(description="Inspect an SPSS .sav dataset and optionally validate against a spec JSON.")
+    parser.add_argument("--sav", required=True, help="Path to SPSS .sav file")
+    parser.add_argument("--spec", default="", help="Optional path to .json spec for indicator preflight validation")
+    parser.add_argument("--json", action="store_true", help="Print full JSON report")
+    args = parser.parse_args()
+
+    root_dir = Path(__file__).resolve().parents[1]
+    sav_path, src = resolve_sav_path(args.sav, None, root_dir)
+
+    spec: dict[str, Any] = {"constructs": []}
+    if args.spec:
+        sp = Path(args.spec)
+        if not sp.is_absolute():
+            sp = Path.cwd() / sp if (Path.cwd() / sp).exists() else (root_dir / sp)
+        if not sp.exists():
+            sys.stderr.write(f"Spec file not found: {sp}\n")
+            return 1
+        spec = json.loads(sp.read_text(encoding="utf-8"))
+
+    report = validate_sav_dataset(sav_path, spec, source_label=src)
+    if args.json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(f"SAV: {report['original_filename']} | Staged: {report['staged_filename'] or 'n/a'}")
+        print(f"SHA256: {report['sha256'] or 'n/a'}")
+        print(f"Observations: {report['n_observations']} | Variables: {report['n_variables']}")
+        print(f"Status: {report['validation_status']}")
+        if report["available_variables"]:
+            print("Variables:")
+            for v in report["available_variables"]:
+                lbl = f" — {v['label']}" if v["label"] else ""
+                print(f"  - {v['name']}{lbl}")
+        for w in report["warnings"]:
+            print(f"WARNING: {w}", file=sys.stderr)
+        for e in report["errors"]:
+            print(f"ERROR: {e}", file=sys.stderr)
+
+    return 0 if not report["errors"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
